@@ -1,21 +1,125 @@
+# =============================================================================
+# compose.dev.yaml — Environnement de développement local
+# =============================================================================
+# Un service par processus, hot-reload partout, pas besoin de rebuild.
+#
+# Usage :
+#   docker compose -f compose.dev.yaml up -d
+#
+# Point d'entrée unique : http://localhost
+#   /api/*       → backend Symfony (PHP built-in server)
+#   /oauth2/*    → backend Symfony
+#   /*           → frontend Nuxt (HMR)
+#
+# Variables d'environnement (optionnelles, valeurs par défaut) :
+#   OAUTH_ENCRYPTION_KEY     — clé de chiffrement OAuth2
+#   OAUTH_PUBLIC_KEY          — chemin clé publique (défaut: var/oauth/public.pem)
+#   OAUTH_PRIVATE_KEY         — chemin clé privée (défaut: var/oauth/private.pem)
+#   OAUTH_DEFAULT_CLIENT_ID   — client OAuth2 (défaut: dev_client_id)
+#   OAUTH_DEFAULT_CLIENT_SECRET — secret OAuth2 (défaut: dev_client_secret)
+#   APP_SECRET                — secret Symfony (défaut: DevSecretChangeMe)
+#   POSTGRES_VERSION          — version PostgreSQL (défaut: 16)
+#   POSTGRES_DB               — nom base (défaut: app)
+#   POSTGRES_USER             — utilisateur (défaut: app)
+#   POSTGRES_PASSWORD         — mot de passe (défaut: !ChangeMe!)
+#   XDEBUG_MODE               — mode Xdebug (défaut: off)
+# =============================================================================
+
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+  # ── Reverse proxy nginx (point d'entrée unique) ────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: app-nginx
     ports:
-      - "3000:3000"
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+
+  # ── Backend Symfony (PHP built-in server) ────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/php/Dockerfile
+    container_name: app-backend
+    volumes:
+      - ./backend:/app
+    environment:
+      APP_ENV: dev
+      APP_SECRET: ${APP_SECRET:-DevSecretChangeMe}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=utf8
+      MAILER_DSN: smtp://mailer:1025
+      OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY}
+      OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY:-/app/var/oauth/public.pem}
+      OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY:-/app/var/oauth/private.pem}
+      OAUTH_PASSPHRASE: ""
+      OAUTH_DEFAULT_CLIENT_ID: ${OAUTH_DEFAULT_CLIENT_ID:-dev_client_id}
+      OAUTH_DEFAULT_CLIENT_SECRET: ${OAUTH_DEFAULT_CLIENT_SECRET:-dev_client_secret}
+      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+    command: docker/php/entrypoint-local.sh
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ── Frontend Nuxt (dev server + HMR) ────────────────────────────────────
+  frontend:
+    image: node:22-alpine
+    container_name: app-frontend
+    working_dir: /app
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/apps/web/node_modules
-      - /app/packages/shared/node_modules
-      - /app/packages/config/node_modules
     environment:
       NODE_ENV: development
-      API_URL: ${API_URL:-http://backend:80}
-      AUTH_URL: http://localhost:3000
-      AUTH_SECRET: ${AUTH_SECRET}
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-    command: pnpm --filter @repo/web dev --port 3000
+      NUXT_PUBLIC_API_BASE: http://localhost/api
+      NUXT_PUBLIC_CLIENT_ID: ${NUXT_PUBLIC_CLIENT_ID:-dev_client_id}
+      NUXT_PUBLIC_CLIENT_SECRET: ${NUXT_PUBLIC_CLIENT_SECRET:-dev_client_secret}
+    command: sh -c "pnpm install && pnpm dev"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    container_name: app-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+    networks:
+      - app-network
+
+  # ── Mailpit (SMTP + interface web) ─────────────────────────────────────
+  mailer:
+    image: axllent/mailpit
+    container_name: app-mailer
+    ports:
+      - "8025:8025"  # Interface web Mailpit
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - app-network
+
+volumes:
+  database_data:
+
+networks:
+  app-network:
+    driver: bridge
