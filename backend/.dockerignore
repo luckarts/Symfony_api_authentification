@@ -1,0 +1,38 @@
+.git
+.github
+.claude
+.idea
+.vscode
+
+# Rebuilt inside the image (composer install --no-dev, cache:clear)
+vendor/
+var/
+.phpunit.cache/
+node_modules/
+
+# Tests and QA tooling, not needed at runtime
+tests/
+phpunit.dist.xml
+phpstan.dist.neon
+ecs.php
+grumphp.yml
+.php-cs-fixer.dist.php
+.travis.yml
+
+# Compose / deploy files, never used at build time
+deploy/
+compose.yaml
+compose.override.yaml
+docker-compose*.yml
+Makefile
+docker/php/Dockerfile
+docker/php/entrypoint-local.sh
+
+# Local env files and JWT keys (generated at build time)
+.env.local
+.env.*.local
+.env.docker.*
+.env.test
+config/jwt/*.pem
+
+*.md

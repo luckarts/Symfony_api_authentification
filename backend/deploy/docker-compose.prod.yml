@@ -22,6 +22,27 @@
 # =============================================================================
 
 services:
+  # ── Base de données ───────────────────────────────────────────────────────
+  # PostgreSQL dédiée à ce projet, réseau interne isolé de traefik-web.
+  database:
+    image: postgres:16-alpine
+    container_name: authentification-symfony-${ENVIRONMENT}-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-app}", "-d", "${POSTGRES_DB:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - db_data:/var/lib/postgresql/data:rw
+    networks:
+      - app-network
+
   # ── Backend Symfony (API) ─────────────────────────────────────────────────
   # Exposé sur api.auth.bachelart.fr (ou api.auth-staging.bachelart.fr)
   app:
@@ -30,9 +51,26 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${APP_PORT:-8081}:80"
-    env_file:
-      - /home/deploy/${PROJECT_NAME}/.env.${ENVIRONMENT}
+    environment:
+      # DATABASE_URL construite dynamiquement pour rester synchronisée
+      # avec POSTGRES_USER, POSTGRES_PASSWORD et POSTGRES_DB.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=16&charset=utf8
+      # ── Symfony ───────────────────────────────────────────────────────────
+      APP_ENV: ${APP_ENV:-prod}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
+      # ── JWT / OAuth2 ─────────────────────────────────────────────────────
+      OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY:-/app/config/jwt/private.pem}
+      OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY:-/app/config/jwt/public.pem}
+      OAUTH_PASSPHRASE: ${OAUTH_PASSPHRASE:?OAUTH_PASSPHRASE is required}
+      OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY:?OAUTH_ENCRYPTION_KEY is required}
+      OAUTH_DEFAULT_CLIENT_ID: ${OAUTH_DEFAULT_CLIENT_ID:?OAUTH_DEFAULT_CLIENT_ID is required}
+      OAUTH_DEFAULT_CLIENT_SECRET: ${OAUTH_DEFAULT_CLIENT_SECRET:?OAUTH_DEFAULT_CLIENT_SECRET is required}
+    depends_on:
+      database:
+        condition: service_healthy
     networks:
+      - app-network
       - traefik-web
     labels:
       - "traefik.enable=true"
@@ -40,6 +78,35 @@ services:
       - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.entrypoints=websecure"
       - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.tls.certresolver=letsencrypt"
       - "traefik.http.services.authentification-symfony-api-${ENVIRONMENT}.loadbalancer.server.port=80"
+
+  # ── Migration + Setup OAuth (one-shot) ────────────────────────────────────
+  # Lancé par deploy.sh APRÈS docker compose up -d, ou manuellement :
+  #   docker compose --profile migrate run --rm migrate
+  # Le profil "migrate" l'exclut de `docker compose up`.
+  migrate:
+    image: ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}
+    container_name: authentification-symfony-${ENVIRONMENT}-migrate
+    profiles: ["migrate"]
+    environment:
+      # Mêmes vars que le service app, pour que DATABASE_URL soit cohérente
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=16&charset=utf8
+      APP_ENV: ${APP_ENV:-prod}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY:-/app/config/jwt/private.pem}
+      OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY:-/app/config/jwt/public.pem}
+      OAUTH_PASSPHRASE: ${OAUTH_PASSPHRASE:?OAUTH_PASSPHRASE is required}
+      OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY:?OAUTH_ENCRYPTION_KEY is required}
+      OAUTH_DEFAULT_CLIENT_ID: ${OAUTH_DEFAULT_CLIENT_ID:?OAUTH_DEFAULT_CLIENT_ID is required}
+      OAUTH_DEFAULT_CLIENT_SECRET: ${OAUTH_DEFAULT_CLIENT_SECRET:?OAUTH_DEFAULT_CLIENT_SECRET is required}
+    command:
+      - sh
+      - -c
+      - php bin/console doctrine:migrations:migrate --no-interaction && php bin/console app:oauth:setup-client --no-interaction
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network
 
   # ── Frontend Nuxt ─────────────────────────────────────────────────────────
   # Exposé sur auth.bachelart.fr (ou auth-staging.bachelart.fr)
@@ -49,10 +116,11 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${FRONTEND_PORT:-8083}:3000"
-    env_file:
-      - /home/deploy/${PROJECT_NAME}/.env.${ENVIRONMENT}
     environment:
       NUXT_PUBLIC_API_BASE: https://${API_HOST}
+      NUXT_PUBLIC_OAUTH_CLIENT_ID: ${OAUTH_DEFAULT_CLIENT_ID:?OAUTH_DEFAULT_CLIENT_ID is required}
+      NUXT_PUBLIC_OAUTH_CLIENT_SECRET: ${OAUTH_DEFAULT_CLIENT_SECRET:?OAUTH_DEFAULT_CLIENT_SECRET is required}
+      NUXT_PUBLIC_OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY:?OAUTH_ENCRYPTION_KEY is required}
     depends_on:
       - app
     networks:
@@ -65,5 +133,11 @@ services:
       - "traefik.http.services.authentification-symfony-frontend-${ENVIRONMENT}.loadbalancer.server.port=3000"
 
 networks:
+  app-network:
+    driver: bridge
   traefik-web:
     external: true
+
+volumes:
+  db_data:
+    name: authentification-symfony-${ENVIRONMENT}_db_data

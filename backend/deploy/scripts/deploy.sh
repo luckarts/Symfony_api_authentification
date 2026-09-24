@@ -87,6 +87,16 @@ else
   exit 1
 fi
 
+# ── Migrations + OAuth2 (one-shot) ─────────────────────────────────────────
+echo "🗄️  Running migrations..."
+REGISTRY="${REGISTRY}" \
+  PROJECT_NAME="${PROJECT_NAME}" \
+  IMAGE_TAG="${IMAGE_TAG}" \
+  ENVIRONMENT="${ENVIRONMENT}" \
+  docker compose --env-file "${PROJECT_DIR}/.env.${ENVIRONMENT}" -f "${COMPOSE_FILE}" \
+    --profile migrate run --rm migrate
+echo "✅ Migrations + OAuth2 setup complete"
+
 # ── Nettoyage des anciennes images ──────────────────────────────────────────
 echo "🧹 Cleaning old images..."
 docker image prune -f --filter "until=24h"

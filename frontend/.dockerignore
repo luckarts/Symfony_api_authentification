@@ -1,0 +1,22 @@
+.git
+.idea
+.vscode
+
+# Rebuilt inside the image (pnpm install / pnpm build)
+node_modules/
+.nuxt/
+.output/
+dist/
+
+# Test artefacts
+tests/
+playwright-report/
+test-results/
+
+# Not used by the prod image
+Dockerfile*
+docker-entrypoint-e2e.sh
+.env
+.env.*
+*.md
+*.log
