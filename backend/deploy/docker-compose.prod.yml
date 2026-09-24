@@ -33,7 +33,7 @@ services:
     env_file:
       - /home/deploy/${PROJECT_NAME}/.env.${ENVIRONMENT}
     networks:
-      - traefik
+      - traefik-web
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.rule=Host(`${API_HOST}`)"
@@ -56,7 +56,7 @@ services:
     depends_on:
       - app
     networks:
-      - traefik
+      - traefik-web
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authentification-symfony-frontend-${ENVIRONMENT}.rule=Host(`${APP_HOST}`)"
@@ -65,5 +65,5 @@ services:
       - "traefik.http.services.authentification-symfony-frontend-${ENVIRONMENT}.loadbalancer.server.port=3000"
 
 networks:
-  traefik:
+  traefik-web:
     external: true

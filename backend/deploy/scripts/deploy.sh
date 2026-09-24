@@ -52,6 +52,14 @@ if [[ ! -f "${PROJECT_DIR}/.env.${ENVIRONMENT}" ]]; then
   exit 1
 fi
 
+# ── Réseau Traefik ────────────────────────────────────────────────────────────
+# Le réseau traefik-web est partagé (déclaré external dans docker-compose).
+# On le crée s'il n'existe pas — pour un premier déploiement sur serveur vierge.
+if ! docker network inspect traefik-web &>/dev/null; then
+  echo "🌐 Creating traefik-web network..."
+  docker network create traefik-web
+fi
+
 # ── Pull de la nouvelle image ────────────────────────────────────────────────
 echo "📦 Pulling image ${REGISTRY}/${PROJECT_NAME}:${SHA}..."
 docker pull "${REGISTRY}/${PROJECT_NAME}:${SHA}"
