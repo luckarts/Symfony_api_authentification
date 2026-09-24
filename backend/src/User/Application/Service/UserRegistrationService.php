@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\User\Application\Service;
 
+use App\Auth\Domain\Contract\OAuth2ClientCheckerInterface;
 use App\User\Domain\Contract\PasswordHasherInterface;
 use App\User\Domain\Contract\UserRepositoryInterface;
 use App\User\Domain\Entity\User;
@@ -15,11 +16,13 @@ class UserRegistrationService
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly PasswordHasherInterface $passwordHasher,
+        private readonly OAuth2ClientCheckerInterface $oauth2ClientChecker,
     ) {
     }
 
     public function register(RegisterUserCommand $command): User
     {
+        $this->oauth2ClientChecker->assertAtLeastOneActiveClient();
         if ($this->userRepository->existsByEmail($command->email)) {
             throw UserAlreadyExistsException::withEmail($command->email);
         }

@@ -15,6 +15,7 @@ abstract class AbstractApiTestCase extends WebTestCase
     {
         $this->client = static::createClient();
         $this->client->disableReboot();
+        $this->setUpApiTestHelper();
     }
 
     protected function onNotSuccessfulTest(\Throwable $t): never

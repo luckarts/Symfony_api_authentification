@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\E2E\User;
 
+use League\Bundle\OAuth2ServerBundle\Manager\ClientManagerInterface;
+use League\Bundle\OAuth2ServerBundle\Model\Client;
+use League\Bundle\OAuth2ServerBundle\ValueObject\Grant;
+use League\Bundle\OAuth2ServerBundle\ValueObject\Scope;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +22,19 @@ class RegisterUserTest extends WebTestCase
     {
         $this->client = static::createClient();
         $this->client->disableReboot();
+        $this->setupOAuthClient();
+    }
+
+    private function setupOAuthClient(): void
+    {
+        /** @var ClientManagerInterface $clientManager */
+        $clientManager = static::getContainer()->get(ClientManagerInterface::class);
+        if ($clientManager->find('test_client') === null) {
+            $oauthClient = new Client('Test Client', 'test_client', 'test_secret');
+            $oauthClient->setGrants(new Grant('password'), new Grant('refresh_token'));
+            $oauthClient->setScopes(new Scope('email'), new Scope('profile'));
+            $clientManager->save($oauthClient);
+        }
     }
 
     #[Test]
