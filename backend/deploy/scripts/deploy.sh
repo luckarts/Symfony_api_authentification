@@ -23,14 +23,14 @@ set -euo pipefail
 
 # ── Validation des arguments ─────────────────────────────────────────────────
 if [[ $# -lt 2 ]]; then
-  echo "Usage: $0 <environment> <sha>"
+  echo "Usage: $0 <environment> <image_tag>"
   echo "  environment : staging | prod"
-  echo "  sha         : SHA du commit (40 chars hex)"
+  echo "  image_tag   : tag de l'image (latest-staging, latest-prod, ou SHA)"
   exit 1
 fi
 
 ENVIRONMENT="$1"
-SHA="$2"
+IMAGE_TAG="$2"
 
 # ── Configuration ───────────────────────────────────────────────────────────
 REGISTRY="${REGISTRY:-registry.bachelart.fr}"
@@ -61,18 +61,18 @@ if ! docker network inspect traefik-web &>/dev/null; then
 fi
 
 # ── Pull de la nouvelle image ────────────────────────────────────────────────
-echo "📦 Pulling image ${REGISTRY}/${PROJECT_NAME}:${SHA}..."
-docker pull "${REGISTRY}/${PROJECT_NAME}:${SHA}"
+echo "📦 Pulling image ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}..."
+docker pull "${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}"
 
 # ── Déploiement ──────────────────────────────────────────────────────────────
-echo "🚀 Deploying ${PROJECT_NAME} (${ENVIRONMENT}) — SHA: ${SHA}..."
+echo "🚀 Deploying ${PROJECT_NAME} (${ENVIRONMENT}) — tag: ${IMAGE_TAG}..."
 cd "${PROJECT_DIR}"
 
 REGISTRY="${REGISTRY}" \
   PROJECT_NAME="${PROJECT_NAME}" \
-  SHA="${SHA}" \
+  IMAGE_TAG="${IMAGE_TAG}" \
   ENVIRONMENT="${ENVIRONMENT}" \
-  docker compose -f "${COMPOSE_FILE}" up -d
+  docker compose --env-file "${PROJECT_DIR}/.env.${ENVIRONMENT}" -f "${COMPOSE_FILE}" up -d
 
 # ── Vérification rapide ──────────────────────────────────────────────────────
 echo "⏳ Waiting for container to be healthy..."
@@ -91,4 +91,4 @@ fi
 echo "🧹 Cleaning old images..."
 docker image prune -f --filter "until=24h"
 
-echo "✅ Deployment complete: ${PROJECT_NAME} (${ENVIRONMENT}) @ ${SHA}"
+echo "✅ Deployment complete: ${PROJECT_NAME} (${ENVIRONMENT}) @ ${IMAGE_TAG}"

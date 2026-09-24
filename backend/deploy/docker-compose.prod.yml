@@ -2,10 +2,10 @@
 # docker-compose.prod.yml — Production / Staging
 # =============================================================================
 # Utilisé par deploy.sh côté serveur.
-# Chaque service est tagué avec le SHA du commit pour un rollback précis.
+# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
 #
 # Usage :
-#   docker compose -f deploy/docker-compose.prod.yml up -d
+#   docker compose --env-file .env.staging -f deploy/docker-compose.prod.yml up -d
 #
 # Architecture réseau :
 #   - api.auth.bachelart.fr  → backend Symfony (port 80)
@@ -14,7 +14,7 @@
 # Variables d'environnement (fournies par .env.{prod,staging}) :
 #   REGISTRY           — registry.bachelart.fr
 #   PROJECT_NAME       — authentification-symfony
-#   SHA                — SHA du commit à déployer
+#   IMAGE_TAG          — tag de l'image (latest-staging, latest-prod, ou SHA)
 #
 # Labels Traefik :
 #   Chaque service déclare son propre host rule. Les certificats Let's Encrypt
@@ -25,7 +25,7 @@ services:
   # ── Backend Symfony (API) ─────────────────────────────────────────────────
   # Exposé sur api.auth.bachelart.fr (ou api.auth-staging.bachelart.fr)
   app:
-    image: ${REGISTRY}/${PROJECT_NAME}:${SHA}
+    image: ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}
     container_name: authentification-symfony-${ENVIRONMENT}
     restart: unless-stopped
     ports:
@@ -44,7 +44,7 @@ services:
   # ── Frontend Nuxt ─────────────────────────────────────────────────────────
   # Exposé sur auth.bachelart.fr (ou auth-staging.bachelart.fr)
   frontend:
-    image: ${REGISTRY}/${PROJECT_NAME}-frontend:${SHA}
+    image: ${REGISTRY}/${PROJECT_NAME}-frontend:${IMAGE_TAG}
     container_name: authentification-symfony-frontend-${ENVIRONMENT}
     restart: unless-stopped
     ports:
