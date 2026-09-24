@@ -45,14 +45,18 @@ export default defineNuxtConfig({
     // Privé (serveur seulement)
     apiSecret: '',
     // Public (client + serveur)
+    // Les valeurs sont automatiquement surchargées par les variables
+    // d'environnement NUXT_PUBLIC_* au runtime (pas de process.env ici).
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
-      oauthClientId: process.env.NUXT_PUBLIC_CLIENT_ID || 'dev_client_id',
-      oauthClientSecret: process.env.NUXT_PUBLIC_CLIENT_SECRET || 'dev_client_secret',
+      apiBase: '',
+      oauthClientId: '',
+      oauthClientSecret: '',
     },
   },
 
   // Route rules (ISR, SSR, SPA)
+  // apiBase est défini au build via --build-arg NUXT_PUBLIC_API_BASE
+  // pour que les règles de proxy soient compilées dans le bundle Nitro.
   routeRules: {
     '/': { isr: 3600 }, // Incremental Static Regeneration
     '/admin/**': { ssr: false }, // SPA pour admin

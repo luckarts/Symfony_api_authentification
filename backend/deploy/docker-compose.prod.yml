@@ -1,0 +1,69 @@
+# =============================================================================
+# docker-compose.prod.yml — Production / Staging
+# =============================================================================
+# Utilisé par deploy.sh côté serveur.
+# Chaque service est tagué avec le SHA du commit pour un rollback précis.
+#
+# Usage :
+#   docker compose -f deploy/docker-compose.prod.yml up -d
+#
+# Architecture réseau :
+#   - api.auth.bachelart.fr  → backend Symfony (port 80)
+#   - auth.bachelart.fr      → frontend Nuxt (port 3000)
+#
+# Variables d'environnement (fournies par .env.{prod,staging}) :
+#   REGISTRY           — registry.bachelart.fr
+#   PROJECT_NAME       — authentification-symfony
+#   SHA                — SHA du commit à déployer
+#
+# Labels Traefik :
+#   Chaque service déclare son propre host rule. Les certificats Let's Encrypt
+#   sont générés automatiquement par Traefik.
+# =============================================================================
+
+services:
+  # ── Backend Symfony (API) ─────────────────────────────────────────────────
+  # Exposé sur api.auth.bachelart.fr (ou api.auth-staging.bachelart.fr)
+  app:
+    image: ${REGISTRY}/${PROJECT_NAME}:${SHA}
+    container_name: authentification-symfony-${ENVIRONMENT}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_PORT:-8081}:80"
+    env_file:
+      - /home/deploy/${PROJECT_NAME}/.env.${ENVIRONMENT}
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.rule=Host(`${API_HOST}`)"
+      - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.entrypoints=websecure"
+      - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.authentification-symfony-api-${ENVIRONMENT}.loadbalancer.server.port=80"
+
+  # ── Frontend Nuxt ─────────────────────────────────────────────────────────
+  # Exposé sur auth.bachelart.fr (ou auth-staging.bachelart.fr)
+  frontend:
+    image: ${REGISTRY}/${PROJECT_NAME}-frontend:${SHA}
+    container_name: authentification-symfony-frontend-${ENVIRONMENT}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-8083}:3000"
+    env_file:
+      - /home/deploy/${PROJECT_NAME}/.env.${ENVIRONMENT}
+    environment:
+      NUXT_PUBLIC_API_BASE: https://${API_HOST}
+    depends_on:
+      - app
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentification-symfony-frontend-${ENVIRONMENT}.rule=Host(`${APP_HOST}`)"
+      - "traefik.http.routers.authentification-symfony-frontend-${ENVIRONMENT}.entrypoints=websecure"
+      - "traefik.http.routers.authentification-symfony-frontend-${ENVIRONMENT}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.authentification-symfony-frontend-${ENVIRONMENT}.loadbalancer.server.port=3000"
+
+networks:
+  traefik:
+    external: true

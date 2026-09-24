@@ -61,17 +61,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://backend:80}
     container_name: app-frontend
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: production
-      API_URL: ${API_URL:-http://backend:80}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:80}
-      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
-      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:?OAUTH_CLIENT_ID is required}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:?OAUTH_CLIENT_SECRET is required}
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://backend:80}
+      NUXT_PUBLIC_CLIENT_ID: ${NUXT_PUBLIC_CLIENT_ID:-dev_client_id}
+      NUXT_PUBLIC_CLIENT_SECRET: ${NUXT_PUBLIC_CLIENT_SECRET:-dev_client_secret}
     depends_on:
       - backend
     networks:
