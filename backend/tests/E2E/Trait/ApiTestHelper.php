@@ -27,6 +27,7 @@ trait ApiTestHelper
     private const CLIENT_ID = "test_client";
     private const CLIENT_SECRET = "test_secret";
     private bool $oauthClientRegistered = false;
+    private ?Configuration $jwtConfiguration = null;
 
     /**
      * Cette méthode sera appelée manuellement ou via l'alias dans le setUp() du test
@@ -85,6 +86,8 @@ trait ApiTestHelper
         string $firstName = "John",
         string $lastName = "Doe",
     ): User {
+        $this->setUpApiTestHelper();
+
         /** @var UserRegistrationService $registrationService */
         $registrationService = static::getContainer()->get(
             UserRegistrationService::class,
