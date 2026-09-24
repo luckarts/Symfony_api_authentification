@@ -32,7 +32,10 @@ COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN chmod 644 /app/config/jwt/private.pem
+RUN mkdir -p /app/config/jwt \
+    && openssl genpkey -algorithm RSA -out /app/config/jwt/private.pem -pkeyopt rsa_keygen_bits:2048 \
+    && openssl rsa -pubout -in /app/config/jwt/private.pem -out /app/config/jwt/public.pem \
+    && chmod 644 /app/config/jwt/private.pem
 
 COPY docker/php/entrypoint.sh /app/docker/php/entrypoint.sh
 RUN chmod +x /app/docker/php/entrypoint.sh

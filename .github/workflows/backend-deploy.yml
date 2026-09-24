@@ -169,7 +169,7 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/oracle
+          echo "${{ secrets.ORACLE_SSH_KEY }}" | base64 -d > ~/.ssh/oracle
           chmod 600 ~/.ssh/oracle
           cat >> ~/.ssh/config <<EOF
           Host oracle
@@ -198,7 +198,7 @@ jobs:
       - name: Deploy
         env:
           SSH_VERBOSE: ${{ inputs.debug_ssh && '-vvv' || '' }}
-        run: ssh $SSH_VERBOSE oracle "deploy ${{ env.PROJECT_NAME }} staging ${{ github.sha }}"
+        run: ssh $SSH_VERBOSE oracle "bash /home/deploy/${{ env.PROJECT_NAME }}/deploy/scripts/deploy.sh staging ${{ github.sha }}"
 
   # ============================================================================
   # JOB 4 : deploy-prod
@@ -224,7 +224,7 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/oracle
+          echo "${{ secrets.ORACLE_SSH_KEY }}" | base64 -d > ~/.ssh/oracle
           chmod 600 ~/.ssh/oracle
           cat >> ~/.ssh/config <<EOF
           Host oracle
@@ -253,4 +253,4 @@ jobs:
       - name: Deploy
         env:
           SSH_VERBOSE: ${{ inputs.debug_ssh && '-vvv' || '' }}
-        run: ssh $SSH_VERBOSE oracle "deploy ${{ env.PROJECT_NAME }} prod ${{ github.sha }}"
+        run: ssh $SSH_VERBOSE oracle "bash /home/deploy/${{ env.PROJECT_NAME }}/deploy/scripts/deploy.sh prod ${{ github.sha }}"
