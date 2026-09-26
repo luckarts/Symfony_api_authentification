@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-echo "🗄️  Migrations..."
-php bin/console doctrine:migrations:migrate --no-interaction
-
-echo "🔑 OAuth2 client..."
-php bin/console app:oauth:setup-client --no-interaction
+# Si des arguments sont passés (ex: commande one-shot), on les exécute
+# et on quitte — utilisé par le service "migrate" dans docker-compose.
+if [ $# -gt 0 ]; then
+  exec "$@"
+fi
 
 echo "🚀 Démarrage des services..."
 exec supervisord -c /etc/supervisor/conf.d/supervisord.conf

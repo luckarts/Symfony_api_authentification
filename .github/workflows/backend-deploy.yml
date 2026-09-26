@@ -163,8 +163,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' && (always() && needs.build-backend.result == 'success' && needs.build-frontend.result == 'success')
     environment: staging
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH
         run: |
@@ -218,8 +217,7 @@ jobs:
       (needs.deploy-staging.result == 'success' || needs.deploy-staging.result == 'skipped')
     environment: production
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH
         run: |
