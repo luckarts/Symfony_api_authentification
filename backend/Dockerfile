@@ -32,8 +32,6 @@ COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN chmod 644 /app/config/jwt/private.pem
-
 COPY docker/php/entrypoint.sh /app/docker/php/entrypoint.sh
 RUN chmod +x /app/docker/php/entrypoint.sh
 
