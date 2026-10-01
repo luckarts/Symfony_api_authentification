@@ -3,12 +3,6 @@
 # =============================================================================
 # Utilisé par deploy.sh côté serveur.
 # Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
-# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
-# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
-# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
-# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
-# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
-# Chaque service est tagué avec un IMAGE_TAG (latest-staging, latest-prod, ou SHA).
 #
 # Usage :
 #   docker compose --env-file .env.staging -f deploy/docker-compose.prod.yml up -d
