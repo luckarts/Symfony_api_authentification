@@ -1,4 +1,4 @@
-import { loginService, signupService } from '~/services/auth'
+import { loginService, signupService, fetchProfileService } from '~/services/auth'
 import type { SignupPayload } from '~/types/auth'
 import { useAppToast } from './useAppToast'
 
@@ -10,15 +10,24 @@ export function useSignup() {
   async function signup(payload: SignupPayload) {
     loading.value = true
     try {
-      await signupService(payload)
-      const res = await loginService(payload.email, payload.password)
-      authStore.setToken(res.token)
+      const res = await signupService(payload)
+      const loginRes = await loginService(payload.email, payload.password)
+      authStore.setToken(loginRes.token)
+
+      // Fetch profile to store user info (including isVerified)
+      try {
+        const profile = await fetchProfileService(res.id)
+        authStore.setProfile(profile)
+      } catch {
+        // Silently handle profile fetch failure
+      }
+
       toast({
         title: 'Bienvenue !',
-        description: 'Connexion réussie',
+        description: 'Un email de vérification vous a été envoyé.',
         variant: 'success',
       })
-      await navigateTo('/')
+      await navigateTo('/auth/email-verification')
     } catch (err: unknown) {
       const e = err as {
         status?: number
@@ -37,7 +46,7 @@ export function useSignup() {
         description = e.data?.message || e.message || description
       }
       toast({
-        title: 'Erreur de connexion',
+        title: 'Erreur',
         description,
         variant: 'destructive',
       })

@@ -1,8 +1,19 @@
-import type { SignupPayload, SignupResponse } from '~/types/auth'
+import type { SignupPayload, SignupResponse, UserProfileResponse } from '~/types/auth'
 
 const API_ENDPOINTS = {
   SIGNUP: '/api/users',
+  PROFILE: '/api/users',
+  RESEND_VERIFICATION: '/api/email/resend-verification',
 } as const
+
+function authHeaders(): Record<string, string> {
+  const store = useAuthStore()
+  const headers: Record<string, string> = {}
+  if (store.token) {
+    headers['Authorization'] = `Bearer ${store.token}`
+  }
+  return headers
+}
 
 export interface LoginResponse {
   token: string
@@ -40,5 +51,18 @@ export const signupService = (payload: SignupPayload): Promise<SignupResponse> =
     method: 'POST',
     headers: { 'Content-Type': 'application/ld+json' },
     body: { ...payload },
+  })
+}
+
+export const fetchProfileService = (userId: string): Promise<UserProfileResponse> => {
+  return $fetch<UserProfileResponse>(`${API_ENDPOINTS.PROFILE}/${userId}`, {
+    headers: { 'Accept': 'application/ld+json', ...authHeaders() },
+  })
+}
+
+export const resendVerificationEmailService = (): Promise<void> => {
+  return $fetch<void>(API_ENDPOINTS.RESEND_VERIFICATION, {
+    method: 'POST',
+    headers: { ...authHeaders() },
   })
 }

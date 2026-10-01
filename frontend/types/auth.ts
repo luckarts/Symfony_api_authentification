@@ -10,6 +10,17 @@ export interface AuthUser {
   email: string
   firstName: string
   lastName: string
+  isVerified: boolean
+}
+
+export interface UserProfileResponse {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  roles: string[]
+  isVerified: boolean
+  createdAt: string
 }
 
 export interface SignupResponse {

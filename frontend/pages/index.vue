@@ -8,6 +8,11 @@ definePageMeta({
 
 const authStore = useAuthStore()
 
+// Fetch user profile to get isVerified status
+onMounted(() => {
+  authStore.fetchProfile()
+})
+
 useHead({
   title: 'Accueil',
 })
@@ -15,6 +20,7 @@ useHead({
 
 <template>
     <div class="container-page">
+        <EmailVerificationBanner />
         <section class="text-center py-16">
             <h1 class="text-3xl font-bold mb-4" v-if="authStore.user">
                 - Bonjour {{ authStore.user.firstName }} -

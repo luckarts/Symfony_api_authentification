@@ -12,6 +12,7 @@ export function useLogin() {
     try {
       const res = await loginService(email, password)
       authStore.setToken(res.token)
+
       toast({
         title: 'Content de vous revoir !',
         description: 'Connexion réussie',
