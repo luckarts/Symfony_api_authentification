@@ -33,9 +33,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchProfile() {
-    if (!token.value || !user.value) return
+    if (!token.value) return
     try {
-      const profile = await fetchProfileService(user.value.id)
+      const profile = await fetchProfileService()
       setProfile(profile)
     } catch {
       // Silent fail — le token peut être invalide

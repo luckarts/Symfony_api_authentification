@@ -17,6 +17,11 @@ use App\User\Infrastructure\ApiPlatform\State\Processor\UpdateProfileProcessor;
         shortName: "UserProfile",
         operations: [
             new Get(
+                uriTemplate: "/users/me",
+                provider: ProfileProvider::class,
+                openapi: new Operation(summary: 'Get current user profile', security: [['BearerAuth' => []]]),
+            ),
+            new Get(
                 uriTemplate: "/users/{id}",
                 provider: ProfileProvider::class,
                 openapi: new Operation(security: [['BearerAuth' => []]]),

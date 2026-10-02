@@ -29,7 +29,7 @@ export function useSignup() {
       authStore.setToken(loginRes.token)
 
       try {
-        const profile = await fetchProfileService(res.id)
+        const profile = await fetchProfileService()
         authStore.setProfile(profile)
       } catch {
         // Silently handle profile fetch failure

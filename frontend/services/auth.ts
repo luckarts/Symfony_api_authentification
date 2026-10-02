@@ -2,7 +2,7 @@ import type { SignupPayload, SignupResponse, UserProfileResponse } from '~/types
 
 const API_ENDPOINTS = {
   SIGNUP: '/api/users',
-  PROFILE: '/api/users',
+  PROFILE: '/api/users/me',
   RESEND_VERIFICATION: '/api/email/resend-verification',
 } as const
 
@@ -54,8 +54,8 @@ export const signupService = (payload: SignupPayload): Promise<SignupResponse> =
   })
 }
 
-export const fetchProfileService = (userId: string): Promise<UserProfileResponse> => {
-  return $fetch<UserProfileResponse>(`${API_ENDPOINTS.PROFILE}/${userId}`, {
+export const fetchProfileService = (): Promise<UserProfileResponse> => {
+  return $fetch<UserProfileResponse>(API_ENDPOINTS.PROFILE, {
     headers: { 'Accept': 'application/ld+json', ...authHeaders() },
   })
 }
