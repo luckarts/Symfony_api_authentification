@@ -76,7 +76,7 @@ async function goToDashboard() {
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 16 10 12 14" fill="#22c55e" />
         </svg>
-        <Heading :level="2" size="md">Email vérifié !</Heading>
+        <Heading :level="2" size="base">Email vérifié !</Heading>
         <Text>Votre adresse email a été vérifiée avec succès.</Text>
         <Button variant="primary" @click="goToDashboard">
           Accéder au tableau de bord
@@ -90,7 +90,7 @@ async function goToDashboard() {
           <line x1="15" y1="9" x2="9" y2="15" />
           <line x1="9" y1="9" x2="15" y2="15" />
         </svg>
-        <Heading :level="2" size="md">Échec de vérification</Heading>
+        <Heading :level="2" size="base">Échec de vérification</Heading>
         <Text>{{ errorMessage || 'Le lien de vérification est invalide ou a expiré.' }}</Text>
         <Button variant="primary" @click="goToDashboard">
           Retour à l'accueil

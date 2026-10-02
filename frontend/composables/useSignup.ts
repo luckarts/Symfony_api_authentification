@@ -11,10 +11,23 @@ export function useSignup() {
     loading.value = true
     try {
       const res = await signupService(payload)
+
+      // If email verification is required and user is not verified yet,
+      // redirect directly to email-verification page (skip login).
+      if (res.isVerified === false) {
+        toast({
+          title: 'Bienvenue !',
+          description: 'Un email de vérification vous a été envoyé.',
+          variant: 'success',
+        })
+        await navigateTo('/auth/email-verification')
+        return
+      }
+
+      // User is already verified (e.g. admin-created account) — login normally
       const loginRes = await loginService(payload.email, payload.password)
       authStore.setToken(loginRes.token)
 
-      // Fetch profile to store user info (including isVerified)
       try {
         const profile = await fetchProfileService(res.id)
         authStore.setProfile(profile)
@@ -24,10 +37,10 @@ export function useSignup() {
 
       toast({
         title: 'Bienvenue !',
-        description: 'Un email de vérification vous a été envoyé.',
+        description: 'Votre compte a été créé avec succès.',
         variant: 'success',
       })
-      await navigateTo('/auth/email-verification')
+      await navigateTo('/')
     } catch (err: unknown) {
       const e = err as {
         status?: number

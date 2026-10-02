@@ -112,7 +112,12 @@ class OAuth2UserResolveListener
                 SecurityEvent::loginFailed('email_not_verified', $identifier, $ip, $userAgent, $securityUser->getUser()->getId()),
             );
 
-            return;
+            throw new OAuthServerException(
+                'Email not verified. Please verify your email before logging in.',
+                6,
+                'email_not_verified',
+                400,
+            );
         }
 
         $this->loginThrottleGuard->recordSuccess($identifier);

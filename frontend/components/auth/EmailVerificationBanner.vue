@@ -41,7 +41,7 @@ async function resend() {
     <Button
       v-if="!sent"
       variant="outline"
-      size="xs"
+      size="sm"
       :loading="resending"
       @click="resend"
     >

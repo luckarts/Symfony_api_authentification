@@ -29,6 +29,7 @@ export interface SignupResponse {
   firstName: string
   lastName: string
   roles: string[]
+  isVerified: boolean
   createdAt: string
   updatedAt: string
 }

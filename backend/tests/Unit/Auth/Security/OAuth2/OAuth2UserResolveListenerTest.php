@@ -279,7 +279,15 @@ class OAuth2UserResolveListenerTest extends TestCase
             ->with($this->callback(fn (SecurityEvent $e) => SecurityEventType::LOGIN_FAILED === $e->getEventType() && 'email_not_verified' === $e->getReason() && $user->getId() === $e->getUserId()));
 
         $event = $this->makeEvent($username, 'correct-password');
-        $listener->__invoke($event);
+
+        try {
+            $listener->__invoke($event);
+            $this->fail('Expected OAuthServerException to be thrown.');
+        } catch (OAuthServerException $exception) {
+            $this->assertSame(400, $exception->getHttpStatusCode());
+            $this->assertSame('email_not_verified', $exception->getErrorType());
+            $this->assertStringContainsString('Email not verified', $exception->getMessage());
+        }
 
         $this->assertNull($event->getUser());
     }
