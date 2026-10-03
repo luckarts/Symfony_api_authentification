@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import type { AuthUser } from '~/types/auth'
+import { fetchProfileService } from '~/services/auth'
+import type { AuthUser, UserProfileResponse } from '~/types/auth'
 
 const TOKEN_KEY = 'auth_token'
 
@@ -8,6 +9,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null)
 
   const isAuthenticated = computed(() => !!token.value)
+  const isVerified = computed(() => user.value?.isVerified ?? false)
 
   function setToken(value: string) {
     token.value = value
@@ -16,8 +18,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function setProfile(profile: UserProfileResponse) {
+    user.value = {
+      id: profile.id,
+      email: profile.email,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      isVerified: profile.isVerified,
+    }
+  }
+
   function setUser(value: AuthUser) {
     user.value = value
+  }
+
+  async function fetchProfile() {
+    if (!token.value) return
+    try {
+      const profile = await fetchProfileService()
+      setProfile(profile)
+    } catch {
+      // Silent fail — le token peut être invalide
+    }
   }
 
   function hydrate() {
@@ -35,5 +57,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { token, user, isAuthenticated, setToken, setUser, hydrate, logout }
+  return {
+    token,
+    user,
+    isAuthenticated,
+    isVerified,
+    setToken,
+    setProfile,
+    setUser,
+    fetchProfile,
+    hydrate,
+    logout,
+  }
 })

@@ -1,4 +1,4 @@
-import { loginService, signupService } from '~/services/auth'
+import { fetchProfileService, loginService, signupService } from '~/services/auth'
 import type { SignupPayload } from '~/types/auth'
 import { useAppToast } from './useAppToast'
 
@@ -10,12 +10,34 @@ export function useSignup() {
   async function signup(payload: SignupPayload) {
     loading.value = true
     try {
-      await signupService(payload)
-      const res = await loginService(payload.email, payload.password)
-      authStore.setToken(res.token)
+      const res = await signupService(payload)
+
+      // If email verification is required and user is not verified yet,
+      // redirect directly to email-verification page (skip login).
+      if (res.isVerified === false) {
+        toast({
+          title: 'Bienvenue !',
+          description: 'Un email de vérification vous a été envoyé.',
+          variant: 'success',
+        })
+        await navigateTo('/auth/email-verification')
+        return
+      }
+
+      // User is already verified (e.g. admin-created account) — login normally
+      const loginRes = await loginService(payload.email, payload.password)
+      authStore.setToken(loginRes.token)
+
+      try {
+        const profile = await fetchProfileService()
+        authStore.setProfile(profile)
+      } catch {
+        // Silently handle profile fetch failure
+      }
+
       toast({
         title: 'Bienvenue !',
-        description: 'Connexion réussie',
+        description: 'Votre compte a été créé avec succès.',
         variant: 'success',
       })
       await navigateTo('/')
@@ -37,7 +59,7 @@ export function useSignup() {
         description = e.data?.message || e.message || description
       }
       toast({
-        title: 'Erreur de connexion',
+        title: 'Erreur',
         description,
         variant: 'destructive',
       })
