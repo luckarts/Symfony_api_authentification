@@ -6,9 +6,10 @@ const resending = ref(false)
 const sent = ref(false)
 
 async function resend() {
+  if (!authStore.user?.email) return
   resending.value = true
   try {
-    await resendVerificationEmailService()
+    await resendVerificationEmailService(authStore.user.email)
     sent.value = true
     setTimeout(() => {
       sent.value = false

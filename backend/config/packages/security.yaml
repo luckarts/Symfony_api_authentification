@@ -26,7 +26,7 @@ security:
         - { path: ^/oauth2/token, roles: PUBLIC_ACCESS }
         - { path: ^/oauth2/authorize, roles: PUBLIC_ACCESS }
         - { path: ^/api/email/verify, roles: PUBLIC_ACCESS }
-        - { path: ^/api/email/resend-verification, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/email/resend-verification, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/password-reset, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/token, roles: PUBLIC_ACCESS }
         - { path: ^/api/users, roles: PUBLIC_ACCESS }

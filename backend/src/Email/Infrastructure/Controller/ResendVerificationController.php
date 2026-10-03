@@ -5,32 +5,57 @@ declare(strict_types=1);
 namespace App\Email\Infrastructure\Controller;
 
 use App\Email\Application\Service\EmailVerificationService;
-use App\User\Infrastructure\Security\SecurityUser;
+use App\User\Domain\Contract\UserRepositoryInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[AsController]
 class ResendVerificationController
 {
     public function __construct(
         private readonly EmailVerificationService $emailVerificationService,
+        private readonly UserRepositoryInterface $userRepository,
+        #[Autowire(service: 'limiter.resend_verification')]
+        private readonly RateLimiterFactory $resendVerificationLimiter,
     ) {
     }
 
     #[Route('/api/email/resend-verification', methods: ['POST'])]
-    public function __invoke(#[CurrentUser] ?SecurityUser $securityUser): Response
+    public function __invoke(Request $request): Response
     {
-        if (null === $securityUser) {
-            return new JsonResponse(['error' => 'Authentication required.'], Response::HTTP_UNAUTHORIZED);
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'] ?? null;
+
+        if (!$email || !is_string($email)) {
+            return new JsonResponse(['error' => 'Email is required.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $user = $securityUser->getUser();
+        $ip = $request->getClientIp() ?? 'unknown';
+        $limiter = $this->resendVerificationLimiter->create($ip);
+        $limit = $limiter->consume();
+
+        if (!$limit->isAccepted()) {
+            $retryAfter = (int) ceil($limit->getRetryAfter()->format('U.u') - microtime(true));
+            return new JsonResponse([
+                'error' => 'Too many requests. Please try again later.',
+                'retryAfter' => max(1, $retryAfter),
+            ], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
+        $user = $this->userRepository->findByEmail($email);
+
+        if (null === $user) {
+            // Don't leak whether the email exists
+            return new JsonResponse(['message' => 'If the email is registered and not verified, a verification email has been sent.'], Response::HTTP_ACCEPTED);
+        }
 
         if ($user->isVerified()) {
-            return new JsonResponse(['error' => 'Email already verified.'], Response::HTTP_CONFLICT);
+            return new JsonResponse(['message' => 'Email already verified.'], Response::HTTP_ACCEPTED);
         }
 
         $this->emailVerificationService->sendVerificationEmail((string) $user->getId());

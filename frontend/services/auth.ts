@@ -60,9 +60,10 @@ export const fetchProfileService = (): Promise<UserProfileResponse> => {
   })
 }
 
-export const resendVerificationEmailService = (): Promise<void> => {
+export const resendVerificationEmailService = (email: string): Promise<void> => {
   return $fetch<void>(API_ENDPOINTS.RESEND_VERIFICATION, {
     method: 'POST',
-    headers: { ...authHeaders() },
+    headers: { 'Content-Type': 'application/ld+json' },
+    body: { email },
   })
 }
