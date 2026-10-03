@@ -47,7 +47,8 @@ onMounted(async () => {
   } catch (err: unknown) {
     status.value = 'error'
     const e = err as { data?: { error?: string }; message?: string }
-    errorMessage.value = e.data?.error || e.message || 'La vérification a échoué. Le lien est peut-être expiré.'
+    errorMessage.value =
+      e.data?.error || e.message || 'La vérification a échoué. Le lien est peut-être expiré.'
   }
 })
 

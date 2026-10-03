@@ -23,9 +23,10 @@ export default {
     verifyEmailSent: 'Un email de vérification vous a été envoyé.',
     verifyEmailSuccess: 'Votre adresse email a été vérifiée avec succès.',
     verifyEmailError: 'La vérification a échoué. Le lien est peut-être expiré.',
-    verifyEmailCheck: 'Cliquez sur le lien dans l\'email pour vérifier votre compte.',
-    verifyEmailBanner: 'Veuillez vérifier votre adresse email pour accéder à toutes les fonctionnalités.',
-    resendEmail: 'Renvoyer l\'email',
+    verifyEmailCheck: "Cliquez sur le lien dans l'email pour vérifier votre compte.",
+    verifyEmailBanner:
+      'Veuillez vérifier votre adresse email pour accéder à toutes les fonctionnalités.',
+    resendEmail: "Renvoyer l'email",
     resendEmailSent: 'Email renvoyé ! Vérifiez votre boîte de réception.',
     alreadyVerified: 'Déjà vérifié ?',
   },

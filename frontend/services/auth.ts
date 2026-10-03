@@ -10,7 +10,7 @@ function authHeaders(): Record<string, string> {
   const store = useAuthStore()
   const headers: Record<string, string> = {}
   if (store.token) {
-    headers['Authorization'] = `Bearer ${store.token}`
+    headers.Authorization = `Bearer ${store.token}`
   }
   return headers
 }
@@ -56,7 +56,7 @@ export const signupService = (payload: SignupPayload): Promise<SignupResponse> =
 
 export const fetchProfileService = (): Promise<UserProfileResponse> => {
   return $fetch<UserProfileResponse>(API_ENDPOINTS.PROFILE, {
-    headers: { 'Accept': 'application/ld+json', ...authHeaders() },
+    headers: { Accept: 'application/ld+json', ...authHeaders() },
   })
 }
 

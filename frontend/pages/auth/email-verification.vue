@@ -19,7 +19,8 @@ async function resendEmail() {
     })
   } catch (err: unknown) {
     const e = err as { data?: { error?: string }; status?: number }
-    const description = e.data?.error || (e.status === 409 ? 'Email déjà vérifié' : 'Erreur lors du renvoi')
+    const description =
+      e.data?.error || (e.status === 409 ? 'Email déjà vérifié' : 'Erreur lors du renvoi')
     toast({
       title: 'Erreur',
       description,

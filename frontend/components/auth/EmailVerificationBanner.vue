@@ -10,7 +10,9 @@ async function resend() {
   try {
     await resendVerificationEmailService()
     sent.value = true
-    setTimeout(() => { sent.value = false }, 5000)
+    setTimeout(() => {
+      sent.value = false
+    }, 5000)
   } catch {
     // Silently handle
   } finally {

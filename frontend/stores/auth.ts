@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import type { AuthUser, UserProfileResponse } from '~/types/auth'
 import { fetchProfileService } from '~/services/auth'
+import type { AuthUser, UserProfileResponse } from '~/types/auth'
 
 const TOKEN_KEY = 'auth_token'
 
@@ -57,5 +57,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { token, user, isAuthenticated, isVerified, setToken, setProfile, setUser, fetchProfile, hydrate, logout }
+  return {
+    token,
+    user,
+    isAuthenticated,
+    isVerified,
+    setToken,
+    setProfile,
+    setUser,
+    fetchProfile,
+    hydrate,
+    logout,
+  }
 })

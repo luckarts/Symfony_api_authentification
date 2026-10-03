@@ -1,4 +1,4 @@
-import { loginService, signupService, fetchProfileService } from '~/services/auth'
+import { fetchProfileService, loginService, signupService } from '~/services/auth'
 import type { SignupPayload } from '~/types/auth'
 import { useAppToast } from './useAppToast'
 
