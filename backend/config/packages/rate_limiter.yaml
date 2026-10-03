@@ -15,6 +15,11 @@ framework:
             limit: 60
             interval: 1 minute
             lock_factory: lock.factory
+        resend_verification:
+            policy: sliding_window
+            limit: 1
+            interval: 1 minute
+            lock_factory: lock.factory
 
 when@test:
     framework:
@@ -34,6 +39,12 @@ when@test:
             api_default:
                 policy: sliding_window
                 limit: 5
+                interval: 10 seconds
+                lock_factory: lock.factory
+                storage_service: limiter.storage.in_memory
+            resend_verification:
+                policy: sliding_window
+                limit: 3
                 interval: 10 seconds
                 lock_factory: lock.factory
                 storage_service: limiter.storage.in_memory

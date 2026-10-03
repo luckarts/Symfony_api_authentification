@@ -5,33 +5,46 @@ import { resendVerificationEmailService } from '~/services/auth'
 definePageMeta({ layout: 'auth' })
 
 const { toast } = useAppToast()
-const authStore = useAuthStore()
+const route = useRoute()
 const resending = ref(false)
 
+const email = computed(() => {
+  const fromQuery = route.query.email
+  return typeof fromQuery === 'string' ? fromQuery : ''
+})
+
 async function resendEmail() {
+  if (!email.value) {
+    toast({
+      title: 'Erreur',
+      description: "Adresse email introuvable. Veuillez retourner à l'inscription.",
+      variant: 'destructive',
+    })
+    return
+  }
+
   resending.value = true
   try {
-    await resendVerificationEmailService()
+    await resendVerificationEmailService(email.value)
     toast({
       title: 'Email renvoyé',
       description: 'Un nouvel email de vérification vous a été envoyé.',
       variant: 'success',
     })
   } catch (err: unknown) {
-    const e = err as { data?: { error?: string }; status?: number }
-    const description =
-      e.data?.error || (e.status === 409 ? 'Email déjà vérifié' : 'Erreur lors du renvoi')
+    const e = err as { data?: { error?: string; retryAfter?: number }; status?: number }
+    let description = 'Erreur lors du renvoi'
+    if (e.status === 429) {
+      const seconds = e.data?.retryAfter ?? 60
+      description = `Trop de tentatives. Veuillez réessayer dans ${seconds} seconde${seconds > 1 ? 's' : ''}.`
+    } else if (e.data?.error) {
+      description = e.data.error
+    }
     toast({
       title: 'Erreur',
       description,
       variant: 'destructive',
     })
-
-    // If already verified, redirect to home
-    if (e.status === 409) {
-      await authStore.fetchProfile()
-      await navigateTo('/')
-    }
   } finally {
     resending.value = false
   }
@@ -59,7 +72,7 @@ async function goToLogin() {
       </svg>
 
       <Text>
-        Un email de vérification vous a été envoyé à <strong>{{ authStore.user?.email || 'votre adresse email' }}</strong>.
+        Un email de vérification vous a été envoyé à <strong>{{ email || 'votre adresse email' }}</strong>.
       </Text>
 
       <Text>
