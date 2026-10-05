@@ -20,7 +20,7 @@ export function useSignup() {
           description: 'Un email de vérification vous a été envoyé.',
           variant: 'success',
         })
-        await navigateTo('/auth/email-verification')
+        await navigateTo({ path: '/auth/email-verification', query: { email: res.email } })
         return
       }
 

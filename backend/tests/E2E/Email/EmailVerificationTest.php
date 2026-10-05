@@ -16,27 +16,28 @@ class EmailVerificationTest extends AbstractApiTestCase
     private const TEST_PASSWORD = 'T3st!P@ss#Api42';
 
     private string $token;
+    private string $email;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $email = 'verify-' . uniqid() . '@example.com';
-        $this->token = $this->authenticate($email, self::TEST_PASSWORD);
+        $this->email = 'verify-' . uniqid() . '@example.com';
+        $this->token = $this->authenticate($this->email, self::TEST_PASSWORD);
     }
 
     #[Test]
     #[Group('smoke')]
-    public function resend_verification_email(): void
+    public function resend_verification_email_with_email_in_body(): void
     {
-        $response = $this->apiRequest('POST', '/api/email/resend-verification', $this->token);
+        $response = $this->apiRequest('POST', '/api/email/resend-verification', null, ['email' => $this->email]);
         $this->assertSame(Response::HTTP_ACCEPTED, $response->getStatusCode());
     }
 
     #[Test]
-    public function resend_verification_without_auth_returns_401(): void
+    public function resend_verification_without_email_returns_400(): void
     {
         $response = $this->apiRequest('POST', '/api/email/resend-verification');
-        $this->assertSame(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+        $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
     }
 
     #[Test]
