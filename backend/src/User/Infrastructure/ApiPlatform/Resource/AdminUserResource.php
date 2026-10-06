@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\User\Infrastructure\ApiPlatform\Resource;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\User\Domain\Entity\User;
+use App\User\Infrastructure\ApiPlatform\Resource\ChangeUserRoleRequest;
 use App\User\Infrastructure\ApiPlatform\State\Processor\ChangeUserRoleProcessor;
 use App\User\Infrastructure\ApiPlatform\State\Provider\AdminUsersProvider;
-use App\User\Infrastructure\ApiPlatform\Resource\ChangeUserRoleRequest;
 
 #[
     ApiResource(
@@ -43,17 +44,23 @@ use App\User\Infrastructure\ApiPlatform\Resource\ChangeUserRoleRequest;
 ]
 class AdminUserResource
 {
+    #[ApiProperty(writable: false)]
     public string $id;
 
+    #[ApiProperty(writable: false)]
     public string $firstName;
 
+    #[ApiProperty(writable: false)]
     public string $lastName;
 
     /** @var list<string> */
+    #[ApiProperty(writable: false)]
     public array $roles;
 
+    #[ApiProperty(writable: false)]
     public bool $isVerified;
 
+    #[ApiProperty(writable: false)]
     public string $createdAt;
 
     public static function fromEntity(User $user): self
