@@ -293,6 +293,51 @@ class OAuth2UserResolveListenerTest extends TestCase
     }
 
     #[Test]
+    public function unverified_user_with_invalid_password_fails_generically(): void
+    {
+        $user = User::register('unverified@example.com', 'hashed', 'Jane', 'Doe');
+        $securityUser = new SecurityUser($user);
+        $username = 'unverified@example.com';
+
+        $requestStack = new RequestStack();
+        $requestStack->push(Request::create('/oauth2/token', 'POST', server: [
+            'REMOTE_ADDR' => '203.0.113.7',
+            'HTTP_USER_AGENT' => 'PHPUnit-Agent',
+        ]));
+
+        $listener = new OAuth2UserResolveListener(
+            $this->userProvider,
+            $this->passwordHasher,
+            $this->securityLogger,
+            $this->securityEventRepository,
+            $requestStack,
+            $this->loginThrottleGuard,
+            requireEmailVerification: true,
+        );
+
+        $this->loginThrottleGuard->method('assertNotLocked');
+        $this->userProvider->method('loadUserByIdentifier')->willReturn($securityUser);
+        $this->passwordHasher->method('isPasswordValid')->willReturn(false);
+
+        $this->loginThrottleGuard
+            ->expects($this->once())
+            ->method('recordFailure')
+            ->with($username, '203.0.113.7');
+
+        $this->loginThrottleGuard->expects($this->never())->method('recordSuccess');
+
+        $this->securityLogger
+            ->expects($this->once())
+            ->method('warning')
+            ->with('login_failed', $this->callback(fn (array $ctx) => 'bad_password' === $ctx['reason'] && $username === $ctx['emailAttempted']));
+
+        $event = $this->makeEvent($username, 'wrong-password');
+        $listener->__invoke($event);
+
+        $this->assertNull($event->getUser());
+    }
+
+    #[Test]
     public function unverified_user_can_login_when_email_verification_not_required(): void
     {
         $user = User::register('unverified@example.com', 'hashed', 'Jane', 'Doe');
