@@ -7,49 +7,47 @@ const { toast } = useAppToast()
 const authStore = useAuthStore()
 const route = useRoute()
 
-const userId = route.query.userId as string
-const userEmail = route.query.userEmail as string
+// The email link points to the backend API (GET /api/email/verify), which
+// validates the signed URL and redirects here with a `status` query param.
+// This page only renders the result — the verification already happened.
 
-// The verification is done entirely by the backend via GET /api/email/verify
-// The Nuxt proxy forwards /api/** to the backend.
-// This page receives the callback with query params from the email link.
-// The actual verification happens server-side through the proxy.
-// We just show the result to the user.
+const statusParam = (route.query.status as string) || 'error'
+const reasonParam = route.query.reason as string | undefined
+
+// Stable error codes sent by the backend → user-facing French messages.
+const REASON_MESSAGES: Record<string, string> = {
+  missing_parameters: 'Le lien de vérification est incomplet.',
+  user_not_found: 'Utilisateur introuvable.',
+  expired: 'Le lien de vérification a expiré. Demandez-en un nouveau.',
+  wrong_email: 'Ce lien ne correspond pas à votre compte.',
+  invalid_signature: 'Le lien de vérification est invalide.',
+}
 
 const status = ref<'loading' | 'success' | 'error'>('loading')
 const errorMessage = ref<string | null>(null)
 
 onMounted(async () => {
-  if (!userId || !userEmail) {
-    status.value = 'error'
-    errorMessage.value = 'Lien de vérification invalide.'
-    return
-  }
-
-  try {
-    // The backend handles verification via GET /api/email/verify
-    // The proxy in nuxt.config.ts forwards /api/** -> backend
-    await $fetch('/api/email/verify', {
-      params: { userId, userEmail },
-    })
-    status.value = 'success'
-
+  if (statusParam === 'success') {
     // Refresh the user profile to get updated isVerified status
     if (authStore.user) {
       await authStore.fetchProfile()
     }
+
+    status.value = 'success'
 
     toast({
       title: 'Email vérifié !',
       description: 'Votre adresse email a été vérifiée avec succès.',
       variant: 'success',
     })
-  } catch (err: unknown) {
-    status.value = 'error'
-    const e = err as { data?: { error?: string }; message?: string }
-    errorMessage.value =
-      e.data?.error || e.message || 'La vérification a échoué. Le lien est peut-être expiré.'
+
+    return
   }
+
+  status.value = 'error'
+  errorMessage.value =
+    (reasonParam && REASON_MESSAGES[reasonParam]) ||
+    'La vérification a échoué. Le lien est peut-être expiré.'
 })
 
 async function goToDashboard() {

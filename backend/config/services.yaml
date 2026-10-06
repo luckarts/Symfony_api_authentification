@@ -61,6 +61,10 @@ services:
         bind:
             $frontendUrl: '%env(FRONTEND_URL)%'
 
+    App\Email\Infrastructure\Controller\EmailVerificationController:
+        bind:
+            $frontendUrl: '%env(FRONTEND_URL)%'
+
     # Override the RefreshTokenReuseSubscriber to set the encryption key via bind
     App\Auth\Infrastructure\Symfony\EventListener\RefreshTokenReuseSubscriber:
         bind:

@@ -27,6 +27,8 @@ services:
       APP_ENV: dev
       APP_SECRET: ${APP_SECRET}
       DATABASE_URL: postgresql://app:dev@database:5432/app
+      DEFAULT_URI: ${DEFAULT_URI:-http://localhost:8000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY}
       OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY}
       OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY}

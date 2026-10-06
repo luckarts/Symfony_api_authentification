@@ -71,6 +71,14 @@ services:
             MAILER_DSN: ${MAILER_DSN}
             MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL}
             REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION}
+            # ── URLs publiques ───────────────────────────────────────────────────
+            # DEFAULT_URI : hôte public de l'API, utilisé par le router hors contexte
+            # HTTP (ex: worker Messenger) pour générer les URLs absolues signées.
+            # Défaut dérivé de API_HOST pour rester fonctionnel sur un .env existant.
+            DEFAULT_URI: ${DEFAULT_URI:-https://${API_HOST}}
+            # FRONTEND_URL : cible des redirections post-vérification / reset password.
+            # Défaut dérivé de APP_HOST pour rester fonctionnel sur un .env existant.
+            FRONTEND_URL: ${FRONTEND_URL:-https://${APP_HOST}}
             # ── JWT / OAuth2 ─────────────────────────────────────────────────────
             OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY:-/app/config/jwt/private.pem}
             OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY:-/app/config/jwt/public.pem}
@@ -110,6 +118,8 @@ services:
             MAILER_DSN: ${MAILER_DSN}
             MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL}
             REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION}
+            DEFAULT_URI: ${DEFAULT_URI:?DEFAULT_URI is required}
+            FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
             OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY:-/app/config/jwt/private.pem}
             OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY:-/app/config/jwt/public.pem}
             OAUTH_PASSPHRASE: ${OAUTH_PASSPHRASE:?OAUTH_PASSPHRASE is required}
