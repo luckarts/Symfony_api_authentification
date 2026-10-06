@@ -52,7 +52,11 @@ class EmailVerificationWorkflowTest extends AbstractApiTestCase
 
         $this->client->request('GET', $signedUrl);
         $verifyResponse = $this->client->getResponse();
-        $this->assertSame(Response::HTTP_OK, $verifyResponse->getStatusCode(), (string) $verifyResponse->getContent());
+        $this->assertSame(Response::HTTP_FOUND, $verifyResponse->getStatusCode(), (string) $verifyResponse->getContent());
+        $this->assertStringContainsString(
+            '/auth/verify-email?status=success',
+            (string) $verifyResponse->headers->get('Location'),
+        );
 
         /** @var UserRepositoryInterface $userRepository */
         $userRepository = static::getContainer()->get(UserRepositoryInterface::class);
