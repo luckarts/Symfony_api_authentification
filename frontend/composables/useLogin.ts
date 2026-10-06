@@ -26,11 +26,22 @@ export function useLogin() {
         data?: { error?: string; message?: string; violations?: unknown[] }
         message?: string
       }
-      let description = 'Une erreur est survenue, veuillez réessayer'
       if (e.status === 400 && e.data?.error === 'email_not_verified') {
-        description =
-          "Votre email n'est pas encore vérifié. Veuillez vérifier votre boîte de réception."
-      } else if (e.status === 401) {
+        toast({
+          title: 'Email non vérifié',
+          description:
+            "Votre email n'est pas encore vérifié. Veuillez vérifier votre boîte de réception.",
+          variant: 'destructive',
+        })
+        await navigateTo({
+          path: '/auth/email-verification',
+          query: { email },
+        })
+        return
+      }
+
+      let description = 'Une erreur est survenue, veuillez réessayer'
+      if (e.status === 401) {
         description = 'Identifiants invalides'
       } else if (e.status === 422) {
         description = 'Données invalides. Vérifiez vos informations.'

@@ -63,7 +63,16 @@ async function goToLogin() {
     </div>
 
     <div class="space-y-4 text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5" aria-hidden="true">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#3b82f6"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
         <rect x="2" y="2" width="20" height="14" rx="2" />
         <polyline points="4 10 10 4" />
         <polyline points="14 10 20 4" />
@@ -80,19 +89,13 @@ async function goToLogin() {
       </Text>
 
       <div class="flex flex-col items-center gap-3">
-        <Button
-          variant="primary"
-          full-width
-          :loading="resending"
-          @click="resendEmail"
-        >
+        <Button variant="primary" full-width :loading="resending" @click="resendEmail">
           Renvoyer l'email
         </Button>
 
-        <Text as="p" class="text-center">
-          Déjà vérifié ?
-          <AppLink variant="brand" @click="goToLogin">Se connecter</AppLink>
-        </Text>
+        <Text as="p" class="text-center">Déjà vérifié ?</Text>
+
+        <Button variant="outline" @click="goToLogin">Se connecter</Button>
       </div>
     </div>
   </Card>
