@@ -16,7 +16,7 @@ class EmailVerificationService
     public function __construct(
         private readonly VerifyEmailHelperInterface $verifyEmailHelper,
         private readonly UserRepositoryInterface $userRepository,
-        private readonly MessageBusInterface $eventBus,
+        private readonly MessageBusInterface $commandBus,
     ) {
     }
 
@@ -36,6 +36,6 @@ class EmailVerificationService
 
     public function sendVerificationEmail(string $userId): void
     {
-        $this->eventBus->dispatch(new SendVerificationEmailMessage($userId));
+        $this->commandBus->dispatch(new SendVerificationEmailMessage($userId));
     }
 }
