@@ -64,10 +64,20 @@ fi
 echo "📦 Pulling image ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}..."
 docker pull "${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}"
 
-# ── Déploiement ──────────────────────────────────────────────────────────────
-echo "🚀 Deploying ${PROJECT_NAME} (${ENVIRONMENT}) — tag: ${IMAGE_TAG}..."
+# ── Migrations + OAuth2 Setup (one-shot, before app start) ─────────────────
+echo "🗄️  Running migrations and setting up OAuth2 keys..."
 cd "${PROJECT_DIR}"
 
+REGISTRY="${REGISTRY}" \
+  PROJECT_NAME="${PROJECT_NAME}" \
+  IMAGE_TAG="${IMAGE_TAG}" \
+  ENVIRONMENT="${ENVIRONMENT}" \
+  docker compose --env-file "${PROJECT_DIR}/.env.${ENVIRONMENT}" -f "${COMPOSE_FILE}" \
+    --profile migrate run --rm migrate
+echo "✅ Migrations + OAuth2 setup complete"
+
+# ── Déploiement ──────────────────────────────────────────────────────────────
+echo "🚀 Deploying ${PROJECT_NAME} (${ENVIRONMENT}) — tag: ${IMAGE_TAG}..."
 REGISTRY="${REGISTRY}" \
   PROJECT_NAME="${PROJECT_NAME}" \
   IMAGE_TAG="${IMAGE_TAG}" \
@@ -86,16 +96,6 @@ else
   docker logs "${CONTAINER_NAME}" --tail=20 2>/dev/null || true
   exit 1
 fi
-
-# ── Migrations + OAuth2 (one-shot) ─────────────────────────────────────────
-echo "🗄️  Running migrations..."
-REGISTRY="${REGISTRY}" \
-  PROJECT_NAME="${PROJECT_NAME}" \
-  IMAGE_TAG="${IMAGE_TAG}" \
-  ENVIRONMENT="${ENVIRONMENT}" \
-  docker compose --env-file "${PROJECT_DIR}/.env.${ENVIRONMENT}" -f "${COMPOSE_FILE}" \
-    --profile migrate run --rm migrate
-echo "✅ Migrations + OAuth2 setup complete"
 
 # ── Nettoyage des anciennes images ──────────────────────────────────────────
 echo "🧹 Cleaning old images..."

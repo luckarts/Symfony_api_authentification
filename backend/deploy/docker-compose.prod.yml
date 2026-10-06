@@ -84,6 +84,8 @@ services:
         networks:
             - app-network
             - traefik-web
+        volumes:
+            - jwt_data:/app/config/jwt:ro
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.authentification-symfony-api-${ENVIRONMENT}.rule=Host(`${API_HOST}`)"
@@ -104,6 +106,10 @@ services:
             DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=16&charset=utf8
             APP_ENV: ${APP_ENV:-prod}
             APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+            MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
+            MAILER_DSN: ${MAILER_DSN}
+            MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL}
+            REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION}
             OAUTH_PRIVATE_KEY: ${OAUTH_PRIVATE_KEY:-/app/config/jwt/private.pem}
             OAUTH_PUBLIC_KEY: ${OAUTH_PUBLIC_KEY:-/app/config/jwt/public.pem}
             OAUTH_PASSPHRASE: ${OAUTH_PASSPHRASE:?OAUTH_PASSPHRASE is required}
@@ -113,12 +119,27 @@ services:
         command:
             - sh
             - -c
-            - php bin/console doctrine:database:create --if-not-exists --no-interaction && php bin/console doctrine:migrations:migrate --no-interaction && php bin/console app:oauth:setup-client --no-interaction
+            - |
+              set -e
+              mkdir -p /app/config/jwt
+              if [ ! -f /app/config/jwt/private.pem ]; then
+                echo "Generating OAuth2 keys..."
+                openssl genrsa -aes256 -passout "pass:$${OAUTH_PASSPHRASE}" -out /app/config/jwt/private.pem 4096
+                openssl rsa -in /app/config/jwt/private.pem -passin "pass:$${OAUTH_PASSPHRASE}" -pubout -out /app/config/jwt/public.pem
+              fi
+              chown www-data:www-data /app/config/jwt/private.pem /app/config/jwt/public.pem || true
+              chmod 644 /app/config/jwt/public.pem
+              chmod 640 /app/config/jwt/private.pem
+              php bin/console doctrine:database:create --if-not-exists --no-interaction
+              php bin/console doctrine:migrations:migrate --no-interaction
+              php bin/console app:oauth:setup-client --no-interaction
         depends_on:
             database:
                 condition: service_healthy
         networks:
             - app-network
+        volumes:
+            - jwt_data:/app/config/jwt:rw
 
     # ── Frontend Nuxt ─────────────────────────────────────────────────────────
     # Exposé sur auth.bachelart.fr (ou auth-staging.bachelart.fr)
@@ -153,3 +174,5 @@ networks:
 volumes:
     db_data:
         name: authentification-symfony-${ENVIRONMENT}_db_data
+    jwt_data:
+        name: authentification-symfony-${ENVIRONMENT}_jwt_data
