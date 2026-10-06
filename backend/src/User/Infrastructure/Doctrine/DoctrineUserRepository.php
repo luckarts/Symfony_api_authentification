@@ -50,6 +50,22 @@ class DoctrineUserRepository extends ServiceEntityRepository implements UserRepo
         $this->getEntityManager()->remove($user);
     }
 
+    public function findUnverifiedBefore(\DateTimeImmutable $before, int $limit): array
+    {
+        /** @var list<User> $users */
+        $users = $this->createQueryBuilder('u')
+            ->where('u.isVerified = :verified')
+            ->andWhere('u.createdAt < :before')
+            ->setParameter('verified', false)
+            ->setParameter('before', $before)
+            ->orderBy('u.createdAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $users;
+    }
+
     public function findAllPaginated(int $page = 1, int $limit = 20): UserCollection
     {
         $query = $this->createQueryBuilder('u')

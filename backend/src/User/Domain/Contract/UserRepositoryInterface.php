@@ -19,6 +19,11 @@ interface UserRepositoryInterface
 
     public function existsByEmail(string $email): bool;
 
+    /**
+     * @return list<User>
+     */
+    public function findUnverifiedBefore(\DateTimeImmutable $before, int $limit): array;
+
     public function save(User $user): void;
 
     public function remove(User $user): void;
