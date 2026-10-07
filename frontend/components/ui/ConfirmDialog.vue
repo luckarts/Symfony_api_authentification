@@ -28,7 +28,7 @@ function onCancel() {
       aria-modal="true"
       @click.self="onCancel"
     >
-      <Card variant="shadow" class="w-full max-w-sm bg-card">
+      <Card variant="shadow" class="w-full max-w-sm">
         <Heading :level="2" size="lg">{{ title }}</Heading>
         <Text as="p">{{ message }}</Text>
         <div class="flex justify-end gap-3">
