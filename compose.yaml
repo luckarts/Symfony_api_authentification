@@ -49,6 +49,7 @@ services:
       MAILER_DSN: ${MAILER_DSN:-smtp://mailer:1025}
       MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL:-noreply@obsidian-web.local}
       DEFAULT_URI: ${DEFAULT_URI:-http://localhost:8000}
+      REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
       OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY}
       OAUTH_PUBLIC_KEY: /app/config/jwt/public.pem
       OAUTH_PRIVATE_KEY: /app/config/jwt/private.pem
