@@ -70,8 +70,8 @@ services:
       - "3000:3000"
     environment:
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://backend:80}
-      NUXT_PUBLIC_CLIENT_ID: ${NUXT_PUBLIC_CLIENT_ID:-dev_client_id}
-      NUXT_PUBLIC_CLIENT_SECRET: ${NUXT_PUBLIC_CLIENT_SECRET:-dev_client_secret}
+      NUXT_PUBLIC_OAUTH_CLIENT_ID: ${NUXT_PUBLIC_OAUTH_CLIENT_ID:-dev_client_id}
+      NUXT_PUBLIC_OAUTH_CLIENT_SECRET: ${NUXT_PUBLIC_OAUTH_CLIENT_SECRET:-dev_client_secret}
     depends_on:
       - backend
     networks:

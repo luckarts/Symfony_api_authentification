@@ -15,14 +15,13 @@ class EmailVerificationTest extends AbstractApiTestCase
 {
     private const TEST_PASSWORD = 'T3st!P@ss#Api42';
 
-    private string $token;
     private string $email;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->email = 'verify-' . uniqid() . '@example.com';
-        $this->token = $this->authenticate($this->email, self::TEST_PASSWORD);
+        $this->authenticate($this->email, self::TEST_PASSWORD);
     }
 
     #[Test]
@@ -41,10 +40,14 @@ class EmailVerificationTest extends AbstractApiTestCase
     }
 
     #[Test]
-    public function verify_with_missing_params_returns_400(): void
+    public function verify_with_missing_params_redirects_to_frontend_error(): void
     {
         $this->client->request('GET', '/api/email/verify');
         $response = $this->client->getResponse();
-        $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+        $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
+        $this->assertStringContainsString(
+            '/auth/verify-email?status=error&reason=missing_parameters',
+            (string) $response->headers->get('Location'),
+        );
     }
 }
