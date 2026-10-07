@@ -13,6 +13,8 @@ interface UserRepositoryInterface
 
     public function findAllPaginated(int $page = 1, int $limit = 20): UserCollection;
 
+    public function findVerifiedPaginated(int $page = 1, int $limit = 50): UserCollection;
+
     public function findByEmail(string $email): ?User;
 
     public function existsByEmail(string $email): bool;
