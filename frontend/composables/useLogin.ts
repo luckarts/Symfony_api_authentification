@@ -40,6 +40,20 @@ export function useLogin() {
         return
       }
 
+      if (e.status === 400 && e.data?.error === 'user_not_found') {
+        toast({
+          title: 'Compte introuvable',
+          description:
+            "Aucun compte n'existe avec cet email. Créez-en un pour continuer.",
+          variant: 'destructive',
+        })
+        await navigateTo({
+          path: '/auth/signup',
+          query: { email },
+        })
+        return
+      }
+
       let description = 'Une erreur est survenue, veuillez réessayer'
       if (e.status === 401) {
         description = 'Identifiants invalides'

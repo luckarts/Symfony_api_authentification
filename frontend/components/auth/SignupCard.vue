@@ -36,7 +36,10 @@ const {
   errorMessage: emailError,
   handleBlur: touchEmail,
   validate: validateEmail,
-} = useField<string>('', [required("L'email est requis"), emailRule('Adresse email invalide')])
+} = useField<string>(
+  typeof useRoute().query.email === 'string' ? (useRoute().query.email as string) : '',
+  [required("L'email est requis"), emailRule('Adresse email invalide')],
+)
 
 const {
   value: password,
