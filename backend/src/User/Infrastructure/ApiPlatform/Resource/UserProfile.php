@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\User\Infrastructure\ApiPlatform\Resource;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\User\Domain\Entity\User;
-use App\User\Infrastructure\ApiPlatform\State\Provider\ProfileProvider;
 use App\User\Infrastructure\ApiPlatform\State\Processor\UpdateProfileProcessor;
+use App\User\Infrastructure\ApiPlatform\State\Provider\ProfileProvider;
 
 #[
     ApiResource(
@@ -30,6 +31,8 @@ use App\User\Infrastructure\ApiPlatform\State\Processor\UpdateProfileProcessor;
                 uriTemplate: "/users/{id}/profile",
                 provider: ProfileProvider::class,
                 processor: UpdateProfileProcessor::class,
+                input: UpdateProfileRequest::class,
+                output: UserProfile::class,
                 openapi: new Operation(security: [['BearerAuth' => []]]),
             ),
         ],
@@ -38,16 +41,23 @@ use App\User\Infrastructure\ApiPlatform\State\Processor\UpdateProfileProcessor;
 ]
 class UserProfile
 {
+    #[ApiProperty(writable: false)]
     public string $id = "";
+
+    #[ApiProperty(writable: false)]
     public string $email = "";
+
     public string $firstName = "";
     public string $lastName = "";
 
     /** @var list<string> */
+    #[ApiProperty(writable: false)]
     public array $roles = [];
 
+    #[ApiProperty(writable: false)]
     public bool $isVerified = false;
 
+    #[ApiProperty(writable: false)]
     public string $createdAt = "";
 
     public static function fromEntity(User $user): self
