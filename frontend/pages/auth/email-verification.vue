@@ -1,16 +1,29 @@
 <script setup lang="ts">
 import { useAppToast } from '~/composables/useAppToast'
 import { resendVerificationEmailService } from '~/services/auth'
+import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({ layout: 'auth' })
 
 const { toast } = useAppToast()
+const authStore = useAuthStore()
 const route = useRoute()
 const resending = ref(false)
 
 const email = computed(() => {
   const fromQuery = route.query.email
-  return typeof fromQuery === 'string' ? fromQuery : ''
+  if (typeof fromQuery === 'string' && fromQuery !== '') {
+    return fromQuery
+  }
+  // Fallback: the account may already be signed in (direct access, refresh)
+  return authStore.user?.email ?? ''
+})
+
+onMounted(() => {
+  authStore.hydrate()
+  if (authStore.isAuthenticated && !authStore.user) {
+    authStore.fetchProfile()
+  }
 })
 
 async function resendEmail() {
