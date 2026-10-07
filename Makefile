@@ -1,6 +1,7 @@
 .PHONY: up down build restart logs backend frontend shell-backend shell-frontend routes install-hooks
 .PHONY: dev-up dev-down dev-logs dev-wait test-e2e-signup test-e2e test-e2e-real install-browsers
 .PHONY: migrate reset-db
+.PHONY: purge-unverified
 
 DOCKER_LOCAL = docker compose --env-file backend/.env.docker.local -f backend/docker-compose.local.yml
 
@@ -61,6 +62,13 @@ reset-db:
 	docker exec app-backend php bin/console doctrine:database:create --no-interaction
 	docker exec app-backend php bin/console doctrine:migrations:migrate --no-interaction
 	docker exec app-backend php bin/console app:oauth:setup-client --no-interaction
+
+# Purge des comptes non vérifiés (dry-run par défaut, seuil 5 minutes)
+#   make purge-unverified                                       → aperçu (> 5 min)
+#   make purge-unverified ARGS="--force"                        → supprime (> 5 min)
+#   make purge-unverified ARGS='--force --older-than="7 days"'  → seuil personnalisé
+purge-unverified:
+	docker exec app-backend php bin/console app:users:purge-unverified $(ARGS)
 
 # Installer les git hooks locaux (pre-push: validation schema Doctrine)
 install-hooks:
