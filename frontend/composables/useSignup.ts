@@ -48,6 +48,20 @@ export function useSignup() {
         message?: string
       }
       let description = 'Une erreur est survenue, veuillez réessayer'
+      if (e.status === 409) {
+        toast({
+          title: 'Email déjà utilisé',
+          description:
+            "Un compte existe déjà avec cet email. S'il n'est pas encore vérifié, renvoyez l'email de vérification ; sinon, connectez-vous.",
+          variant: 'destructive',
+        })
+        await navigateTo({
+          path: '/auth/email-verification',
+          query: { email: payload.email },
+        })
+        return
+      }
+
       if (e.status === 422) {
         const hasViolations = Array.isArray(e.data?.violations) && e.data.violations.length > 0
         description = hasViolations

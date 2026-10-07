@@ -98,6 +98,26 @@ test.describe('@smoke Signup', () => {
     await expect(alert).toContainText('Email déjà utilisé')
   })
 
+  test('409 — compte déjà existant redirige vers la vérification email', async ({ page }) => {
+    await page.route('**/api/users', (route) =>
+      route.fulfill({
+        status: 409,
+        contentType: 'application/json',
+        body: JSON.stringify({ title: 'An error occurred' }),
+      })
+    )
+    await page.goto('/auth/signup')
+    await page.waitForLoadState('networkidle')
+    await page.getByLabel('Prénom').fill('E2E')
+    await page.getByLabel('Nom', { exact: true }).fill('User')
+    await page.getByLabel('Email').fill('taken@test.com')
+    await page.getByLabel('Mot de passe').fill('motdepasse123')
+    await page.getByRole('button', { name: 'Créer mon compte' }).click()
+
+    await expect(page).toHaveURL(/\/auth\/email-verification/)
+    await expect(page.getByText('taken@test.com')).toBeVisible()
+  })
+
   test('toast erreur — 500 affiche "Erreur serveur"', async ({ page }) => {
     await page.route('**/api/users', (route) =>
       route.fulfill({
