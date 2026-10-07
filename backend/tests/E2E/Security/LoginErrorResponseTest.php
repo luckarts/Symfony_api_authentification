@@ -14,9 +14,16 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * The password grant distinguishes "unknown email" from "wrong password" so
+ * the frontend can route the user to signup.
+ *
+ * This deliberately trades away the anti-enumeration property locked by PR #33:
+ * the signup endpoint already reveals whether an email is registered (409).
+ */
 #[Group('e2e')]
 #[Group('security')]
-class LoginUserEnumerationTest extends WebTestCase
+class LoginErrorResponseTest extends WebTestCase
 {
     private const CLIENT_ID = 'test_client';
     private const CLIENT_SECRET = 'test_secret';
@@ -39,36 +46,41 @@ class LoginUserEnumerationTest extends WebTestCase
     }
 
     #[Test]
-    public function unknown_email_and_wrong_password_are_indistinguishable(): void
+    public function unknown_email_returns_user_not_found(): void
     {
-        $password = 'T3st!P@ss#Api42';
-        $knownEmail = 'enumeration_known_' . uniqid() . '@example.com';
-        $unknownEmail = 'enumeration_unknown_' . uniqid() . '@example.com';
-
-        $this->registerUser($knownEmail, $password);
+        $unknownEmail = 'login_unknown_' . uniqid() . '@example.com';
 
         $this->client->setServerParameter('REMOTE_ADDR', '10.10.0.1');
-        $unknownResponse = $this->requestToken($unknownEmail, 'wrong_password');
+        $response = $this->requestToken($unknownEmail, 'whatever_password');
+
+        $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+
+        $body = json_decode((string) $response->getContent(), true);
+        $this->assertSame('user_not_found', $body['error']);
+    }
+
+    #[Test]
+    public function wrong_password_returns_invalid_grant(): void
+    {
+        $password = 'T3st!P@ss#Api42';
+        $email = 'login_wrong_' . uniqid() . '@example.com';
+
+        $this->registerUser($email, $password);
 
         $this->client->setServerParameter('REMOTE_ADDR', '10.10.0.2');
-        $knownResponse = $this->requestToken($knownEmail, 'wrong_password');
+        $response = $this->requestToken($email, 'wrong_password');
 
-        $this->assertSame(Response::HTTP_BAD_REQUEST, $unknownResponse->getStatusCode());
-        $this->assertSame(Response::HTTP_BAD_REQUEST, $knownResponse->getStatusCode());
+        $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
 
-        $unknownBody = json_decode((string) $unknownResponse->getContent(), true);
-        $knownBody = json_decode((string) $knownResponse->getContent(), true);
-
-        $this->assertSame($unknownBody, $knownBody, 'Responses must not reveal whether the email is registered.');
-        $this->assertSame('invalid_grant', $unknownBody['error']);
-        $this->assertArrayNotHasKey('hint', $unknownBody);
+        $body = json_decode((string) $response->getContent(), true);
+        $this->assertSame('invalid_grant', $body['error']);
     }
 
     #[Test]
     public function existing_unverified_email_is_not_revealed_without_valid_credentials(): void
     {
         $password = 'T3st!P@ss#Api42';
-        $email = 'enumeration_unverified_' . uniqid() . '@example.com';
+        $email = 'login_unverified_' . uniqid() . '@example.com';
 
         $this->registerUser($email, $password);
 

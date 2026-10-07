@@ -63,7 +63,7 @@ class OAuth2UserResolveListenerTest extends TestCase
     }
 
     #[Test]
-    public function unknown_user_logs_and_persists_user_not_found_without_leaking_to_response(): void
+    public function unknown_user_throws_user_not_found_error(): void
     {
         $username = 'ghost@example.com';
 
@@ -98,7 +98,14 @@ class OAuth2UserResolveListenerTest extends TestCase
             }));
 
         $event = $this->makeEvent('ghost@example.com', 'irrelevant');
-        $this->listener->__invoke($event);
+
+        try {
+            $this->listener->__invoke($event);
+            $this->fail('Expected OAuthServerException to be thrown.');
+        } catch (OAuthServerException $exception) {
+            $this->assertSame(400, $exception->getHttpStatusCode());
+            $this->assertSame('user_not_found', $exception->getErrorType());
+        }
 
         $this->assertNull($event->getUser());
     }

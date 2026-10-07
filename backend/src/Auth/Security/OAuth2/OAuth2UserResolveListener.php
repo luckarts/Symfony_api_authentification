@@ -81,7 +81,12 @@ class OAuth2UserResolveListener
                 SecurityEvent::loginFailed('user_not_found', $identifier, $ip, $userAgent),
             );
 
-            return;
+            throw new OAuthServerException(
+                'No account found with this email address.',
+                4,
+                'user_not_found',
+                400,
+            );
         }
 
         if (!$this->passwordHasher->isPasswordValid($securityUser, $event->getPassword())) {
