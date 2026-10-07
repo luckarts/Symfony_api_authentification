@@ -37,7 +37,7 @@ async function handleDeleteAccount() {
 
 <template>
   <header
-    class="flex items-center justify-between border-b border-ui-border px-4 py-3"
+    class="sticky top-0 z-40 flex items-center justify-between border-b border-ui-border bg-card px-4 py-3"
   >
     <AppLogo size="sm" />
 
