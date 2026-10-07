@@ -70,4 +70,9 @@ class DoctrineUserRepository extends ServiceEntityRepository implements UserRepo
             itemsPerPage: $limit,
         );
     }
+
+    public function countVerified(): int
+    {
+        return $this->count(['isVerified' => true]);
+    }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   title?: string
-  description: string
+  description?: string
   variant?: 'info' | 'success' | 'warning' | 'error' | 'destructive'
 }>()
 
@@ -36,7 +36,7 @@ const variantClass = computed(() => variantClasses[props.variant ?? ''] ?? 'toas
     <!-- Content -->
     <span class="flex-1">
       <span v-if="title" class="block font-medium">{{ title }}</span>
-      <span :class="title ? 'text-xs opacity-80' : ''">{{ description }}</span>
+      <span v-if="description" :class="title ? 'text-xs opacity-80' : ''">{{ description }}</span>
     </span>
   </div>
 </template>

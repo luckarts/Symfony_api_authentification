@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { fetchProfileService } from '~/services/auth'
+import { deleteAccountService, fetchProfileService } from '~/services/auth'
 import type { AuthUser, UserProfileResponse } from '~/types/auth'
 
 const TOKEN_KEY = 'auth_token'
@@ -57,6 +57,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function deleteAccount() {
+    await deleteAccountService()
+    logout()
+  }
+
   return {
     token,
     user,
@@ -68,5 +73,6 @@ export const useAuthStore = defineStore('auth', () => {
     fetchProfile,
     hydrate,
     logout,
+    deleteAccount,
   }
 })

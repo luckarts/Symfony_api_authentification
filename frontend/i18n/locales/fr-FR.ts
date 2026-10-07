@@ -46,5 +46,16 @@ export default {
     greeting: 'Bonjour, {name}',
     recentProjects: 'Mes projets récents',
     noProjects: 'Aucun projet pour le moment.',
+    verifiedUsers: 'Comptes vérifiés',
+    verifiedUsersHint: 'Membres ayant validé leur email',
+  },
+  header: {
+    logout: 'Se déconnecter',
+    deleteAccount: 'Supprimer mon compte',
+    accountDeleted: 'Votre compte a été supprimé.',
+    deleteAccountConfirmTitle: 'Supprimer votre compte ?',
+    deleteAccountConfirmMessage:
+      'Cette action est définitive : votre compte et toutes vos données seront supprimés.',
+    deleteAccountConfirm: 'Supprimer définitivement',
   },
 }

@@ -12,8 +12,8 @@ const variantClasses = {
 
 <template>
   <div
-    class="ui-bg p-8 space-y-5"
-    :class="variantClasses[props.variant ?? 'flat']"                                                                            
+    class="bg-card p-8 space-y-5"
+    :class="variantClasses[props.variant ?? 'flat']"
     v-bind="$attrs"
   >
     <slot />

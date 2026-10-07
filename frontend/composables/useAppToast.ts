@@ -1,13 +1,13 @@
 export interface AppToast {
   id: number
   title?: string
-  description: string
+  description?: string
   variant?: 'info' | 'success' | 'warning' | 'error' | 'destructive'
 }
 
 export interface ToastOptions {
   title?: string
-  description: string
+  description?: string
   variant?: AppToast['variant']
   duration?: number
 }
