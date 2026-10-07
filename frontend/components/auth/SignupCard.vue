@@ -38,7 +38,7 @@ const {
   validate: validateEmail,
 } = useField<string>(
   typeof useRoute().query.email === 'string' ? (useRoute().query.email as string) : '',
-  [required("L'email est requis"), emailRule('Adresse email invalide')],
+  [required("L'email est requis"), emailRule('Adresse email invalide')]
 )
 
 const {

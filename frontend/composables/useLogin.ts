@@ -43,8 +43,7 @@ export function useLogin() {
       if (e.status === 400 && e.data?.error === 'user_not_found') {
         toast({
           title: 'Compte introuvable',
-          description:
-            "Aucun compte n'existe avec cet email. Créez-en un pour continuer.",
+          description: "Aucun compte n'existe avec cet email. Créez-en un pour continuer.",
           variant: 'destructive',
         })
         await navigateTo({
