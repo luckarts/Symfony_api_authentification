@@ -38,4 +38,13 @@ export default {
     verifiedUsers: 'Verified accounts',
     verifiedUsersHint: 'Members who verified their email',
   },
+  header: {
+    logout: 'Log out',
+    deleteAccount: 'Delete my account',
+    accountDeleted: 'Your account has been deleted.',
+    deleteAccountConfirmTitle: 'Delete your account?',
+    deleteAccountConfirmMessage:
+      'This action is permanent: your account and all your data will be deleted.',
+    deleteAccountConfirm: 'Delete permanently',
+  },
 }
