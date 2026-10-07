@@ -33,4 +33,11 @@ export default {
     lightMode: 'Light mode',
     darkMode: 'Dark mode',
   },
+  dashboard: {
+    greeting: 'Hello, {name}',
+    verifiedUsers: 'Verified accounts',
+    verifiedUsersCount: '{count} member(s)',
+    noVerifiedUsers: 'No verified account yet.',
+    loadMore: 'Load more',
+  },
 }

@@ -1,8 +1,14 @@
-import type { SignupPayload, SignupResponse, UserProfileResponse } from '~/types/auth'
+import type {
+  SignupPayload,
+  SignupResponse,
+  UserProfileResponse,
+  VerifiedUsersResponse,
+} from '~/types/auth'
 
 const API_ENDPOINTS = {
   SIGNUP: '/api/users',
   PROFILE: '/api/users/me',
+  VERIFIED_USERS: '/api/v1/users/verified',
   RESEND_VERIFICATION: '/api/email/resend-verification',
 } as const
 
@@ -65,5 +71,15 @@ export const resendVerificationEmailService = (email: string): Promise<void> => 
     method: 'POST',
     headers: { 'Content-Type': 'application/ld+json' },
     body: { email },
+  })
+}
+
+export const fetchVerifiedUsersService = (
+  page = 1,
+  itemsPerPage = 50,
+): Promise<VerifiedUsersResponse> => {
+  return $fetch<VerifiedUsersResponse>(API_ENDPOINTS.VERIFIED_USERS, {
+    query: { page, itemsPerPage },
+    headers: { ...authHeaders() },
   })
 }

@@ -33,3 +33,10 @@ export interface SignupResponse {
   createdAt: string
   updatedAt: string
 }
+
+export interface VerifiedUsersResponse {
+  member: string[]
+  totalItems: number
+  page: number
+  itemsPerPage: number
+}

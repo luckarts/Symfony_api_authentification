@@ -46,5 +46,9 @@ export default {
     greeting: 'Bonjour, {name}',
     recentProjects: 'Mes projets récents',
     noProjects: 'Aucun projet pour le moment.',
+    verifiedUsers: 'Comptes vérifiés',
+    verifiedUsersCount: '{count} membre(s)',
+    noVerifiedUsers: 'Aucun compte vérifié pour le moment.',
+    loadMore: 'Voir plus',
   },
 }

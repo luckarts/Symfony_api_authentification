@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 // Fetch user profile to get isVerified status
 onMounted(() => {
@@ -14,17 +15,21 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Accueil',
+  title: 'Tableau de bord',
 })
 </script>
 
 <template>
-    <div class="container-page">
-        <EmailVerificationBanner />
-        <section class="text-center py-16">
-            <h1 class="text-3xl font-bold mb-4" v-if="authStore.user">
-                - Bonjour {{ authStore.user.firstName }} -
-            </h1>
-        </section>
+  <div class="flex min-h-full">
+    <VerifiedUsersSidebar />
+
+    <div class="container-page flex-1">
+      <EmailVerificationBanner />
+      <section class="py-16 text-center">
+        <Heading v-if="authStore.user" :level="1" size="2xl">
+          {{ t('dashboard.greeting', { name: authStore.user.firstName }) }}
+        </Heading>
+      </section>
     </div>
+  </div>
 </template>
