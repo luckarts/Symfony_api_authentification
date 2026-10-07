@@ -91,3 +91,11 @@
   --color-btn-danger-active-bg: rgba(127, 29, 29, 0.2);
   --color-btn-danger-hover-border: rgba(153, 27, 27, 0.4);
 }
+
+/* Layout utilities */
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--ui-container);
+  padding-inline: 1rem;
+}

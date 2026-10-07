@@ -13,7 +13,7 @@ function toggleTheme() {
 
 <template>
     <div
-        class="min-h-screen bg-panel flex flex-col items-center justify-center px-4"
+        class="min-h-screen bg-default flex flex-col items-center justify-center px-4"
     >
         <div class="flex-1 flex items-center justify-center w-full">
             <slot />
