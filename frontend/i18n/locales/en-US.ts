@@ -36,8 +36,6 @@ export default {
   dashboard: {
     greeting: 'Hello, {name}',
     verifiedUsers: 'Verified accounts',
-    verifiedUsersCount: '{count} member(s)',
-    noVerifiedUsers: 'No verified account yet.',
-    loadMore: 'Load more',
+    verifiedUsersHint: 'Members who verified their email',
   },
 }

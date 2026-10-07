@@ -10,30 +10,28 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Response;
 
-class ListVerifiedUsersTest extends AbstractApiTestCase
+class VerifiedUsersCountTest extends AbstractApiTestCase
 {
     #[Test]
     #[Group('smoke')]
     #[Group('e2e')]
     #[Group('user')]
-    public function it_returns_only_verified_first_names(): void
+    public function it_returns_the_number_of_verified_accounts(): void
     {
         $password = 'T3st!P@ss#Api42';
-        $verifiedFirstName = 'Verified' . substr(uniqid(), -6);
-        $unverifiedFirstName = 'Hidden' . substr(uniqid(), -6);
 
         $verified = $this->createUser(
-            'verified_list_' . uniqid() . '@example.com',
+            'count_verified_' . uniqid() . '@example.com',
             $password,
-            $verifiedFirstName,
+            'Alice',
             'Doe',
         );
         $verified->verify();
 
         $this->createUser(
-            'unverified_list_' . uniqid() . '@example.com',
+            'count_unverified_' . uniqid() . '@example.com',
             $password,
-            $unverifiedFirstName,
+            'Bob',
             'Doe',
         );
 
@@ -43,24 +41,19 @@ class ListVerifiedUsersTest extends AbstractApiTestCase
 
         $token = $this->getOAuth2Token((string) $verified->getEmail(), $password);
 
-        $response = $this->apiRequest('GET', '/api/v1/users/verified', $token);
+        $response = $this->apiRequest('GET', '/api/v1/users/verified/count', $token);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
 
-        /** @var array{member: list<string>, totalItems: int} $data */
+        /** @var array{totalItems: int} $data */
         $data = json_decode((string) $response->getContent(), true);
 
-        $this->assertContains($verifiedFirstName, $data['member']);
-        $this->assertNotContains($unverifiedFirstName, $data['member']);
+        $this->assertSame(['totalItems'], array_keys($data), 'Only the count must be exposed.');
         $this->assertGreaterThanOrEqual(1, $data['totalItems']);
 
         $content = (string) $response->getContent();
-        $this->assertStringNotContainsString($verified->getEmail(), $content);
-        $this->assertSame(
-            ['member', 'totalItems', 'page', 'itemsPerPage'],
-            array_keys($data),
-            'The response must not expose any other user field (email, lastName, id...).',
-        );
+        $this->assertStringNotContainsString('Alice', $content);
+        $this->assertStringNotContainsString((string) $verified->getEmail(), $content);
     }
 
     #[Test]
@@ -68,7 +61,7 @@ class ListVerifiedUsersTest extends AbstractApiTestCase
     #[Group('user')]
     public function it_requires_authentication(): void
     {
-        $response = $this->apiRequest('GET', '/api/v1/users/verified');
+        $response = $this->apiRequest('GET', '/api/v1/users/verified/count');
 
         $this->assertSame(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
     }

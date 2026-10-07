@@ -71,27 +71,8 @@ class DoctrineUserRepository extends ServiceEntityRepository implements UserRepo
         );
     }
 
-    public function findVerifiedPaginated(int $page = 1, int $limit = 50): UserCollection
+    public function countVerified(): int
     {
-        $query = $this->createQueryBuilder('u')
-            ->where('u.isVerified = :verified')
-            ->setParameter('verified', true)
-            ->orderBy('u.firstName', 'ASC')
-            ->addOrderBy('u.id', 'ASC')
-            ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit)
-            ->getQuery();
-
-        $paginator = new Paginator($query);
-
-        /** @var User[] $items */
-        $items = iterator_to_array($paginator);
-
-        return new UserCollection(
-            items: $items,
-            totalItems: (int) $paginator->count(),
-            currentPage: $page,
-            itemsPerPage: $limit,
-        );
+        return $this->count(['isVerified' => true]);
     }
 }

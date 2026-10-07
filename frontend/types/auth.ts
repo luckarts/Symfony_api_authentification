@@ -34,9 +34,6 @@ export interface SignupResponse {
   updatedAt: string
 }
 
-export interface VerifiedUsersResponse {
-  member: string[]
+export interface VerifiedUsersCountResponse {
   totalItems: number
-  page: number
-  itemsPerPage: number
 }
